@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="jquery-1.7.2.min.js"></script>
+    <link rel="stylesheet" href="audioplayer.css">
+    <script src="audioplayer.js"></script>
+    <script>
+        $(function(){
+            $('audio').audioPlayer({
+                classPrefix: 'audioplayer',
+                strPlay: '播放',
+                strPause: '暂停',
+                strVolume: '音量'
+            });
+        });
+    </script>
+</head>
+<body>
+<div style="width:300px;">
+    <audio src="http://ccnew.acloudcc.com/801?file=/app/clpms/record/20190227/7_test_01053827122_15110014575_20190227163241_1551256361130.wav" preload="auto" controls></audio>
+</div>
+
+</body>
+</html>

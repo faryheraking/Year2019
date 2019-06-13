@@ -62,19 +62,58 @@ userAgent.once('transportCreated', function (transport) {
      * 第一个参数为发送的信息，必选
      * 第二个参数会传递给sendPromise()方法，可选
      **/
-    transport.send("hello",{});
+    transport.send("hello", {});
+    transport.on('messageSent', function (message) {
+        // 通过transport发送消息时执行
+        // message为send()发送的消息
+        console.log(message);
+    });
+    transport.on('message', function (message) {
+        // 通过transport接收消息时执行
+        // message为收到的消息
+        console.log(message);
+    });
     /**
      * 建立连接并触发connected事件
      * 参数会传递给connectPromise()方法，可选
      * @return Promise
      **/
-    transport.connect({});
+    var connectPromise = transport.connect({});
+    transport.on('connected', function () {
+        // 连接建立后执行
+    });
     /**
      * 断开连接并触发disconnected事件
+     * 参数会传递给disconnectPromise()方法，可选
      * @return Promise
      **/
     transport.disconnect({});
-    transport.on('transportError', this.onTransportError.bind(this));
+    transport.on('disconnected', function () {
+        // 连接断开或丢失时执行
+    });
+    /**
+     * 连接建立完成之后执行回调
+     **/
+    transport.afterConnected(function () {
+        // 连接建立后执行的逻辑
+    });
+    transport.on('transportError', function () {
+        // transport层抛出异常时执行
+        // 常用于执行通知其它层的逻辑
+    });
+
+    /**
+     * ------------------ WebSocket Transport
+     **/
+    var logger = transport.logger;  // 日志信息
+    var configuration = transport.configuration;  // 配置对象
+    var ws = transport.ws;  // websocket对象
+    var server = transport.server;  // transport层通过websocket连接到的服务对象
+    var connectionTimer = transport.connectionTimer;  // 连接计时ID
+    var connectionPromise = transport.connectionPromise;  // connect()方法返回的Promise对象
+    var reconnectionAttempts = transport.reconnectionAttempts;  // transport层出现连接出错时尝试重连次数
+    var reconnectTimer = transport.reconnectTimer;  // 重连计时ID
+    var transportRecoveryAttempts = transport.transportRecoveryAttempts;  // 尝试恢复服务次数
 }.bind(this));
 
 // 订阅presence事件
@@ -108,12 +147,32 @@ var userAgent2 = session.ua;  // 用户代理
 var method = session.method;  // 呼叫方法名，总是'INVITE'
 var sessionDescriptionHandler = session.sessionDescriptionHandler;
 
-
+/**
+ * 收到外呼
+ **/
 userAgent.on('invite', function (session) {
-    // 呼入
-    session.accept();
+    session.accept();  // 请求接听
+    session.on('accepted', function (data) {
+        // 已接听
+    });
+
 });
 
+/**
+ * 错误响应触发
+ * 亦触发failed、terminated事件
+ **/
+session.on('rejected', function (response, cause) {
+    // 已挂机
+    // response 接收到的响应
+    // cause 响应说明
+});
+
+/**
+ * 请求失败
+ * 未被接听的电话触发，接听后触发bye事件
+ * 此事件也触发terminated事件
+ **/
 session.on('failed', function (request) {
     var cause = request.cause; //sometimes this is request.reason_phrase
     if(cause === SIP.C.causes.REJECTED) {
@@ -121,6 +180,20 @@ session.on('failed', function (request) {
     }
 });
 
+/**
+ * 会话在接听前或接听后销毁时触发
+ **/
+session.on('terminated', function (message, cause) {
+    // message Object
+    // cause 会话销毁说明
+    console.log(message.body);
+});
+
+/**
+ * 会话被客户端取消时触发
+ **/
+session.on('cancel', function () {
+});
 
 // 重呼
 session.reinvite({
@@ -129,9 +202,6 @@ session.reinvite({
     }
 });
 
-userAgent.on('invite', function (session) {
-    session.accept();  // 接听
-});
 
 // 绑定媒体
 session.on('trackAdded', function () {
@@ -199,8 +269,124 @@ document.getElementById('0').addEventListener("click", function () {
     session.dtmf(0);
 }, false);
 
-session.on("dtmf", function () {
-
+/**
+ * 呼出或呼入拨号时触发
+ **/
+session.on("dtmf", function (request, dtmf) {
+    var logger = request.logger;  // 日志
+    var ua = request.ua;  // 消息发送或接收的用户代理
+    var headers = request.headers;
+    var method = request.method;  // 请求或响应的SIP方法
+    var body = request.body;  // 消息体
+    var from = request.from;  // 消息来源的Header
+    var to = request.to;  // 消息去向的Header
+    var call_id = request.call_id;  // Header域
+    var cseq = request.cseq;  // Header域
+    var ruri = request.ruri;  // SIP.URI
+    var extraHeaders = request.extraHeaders;  // 仅呼出请求
+    var statusCode = request.statusCode;  // 仅呼出状态码
+    var status_code = request.status_code;  // 仅呼入状态码
+    var reasonPhrase = request.reasonPhrase;  // 仅呼出请求
+    var reason_phrase = request.reason_phrase;  // 仅呼入请求
+    var data = request.data;  // 仅呼入请求
+    var via = request.via;  // viaHeaders，仅呼入请求
+    var via_branch = request.via_branch;  // 第一条viaHeaders，仅呼入请求
+    var from_tag = request.from_tag;  // fromHeader的tag，仅呼入请求
+    var to_tag = request.to_tag;  // toHeader的tag，仅呼入请求
+    var transport = request.transport;  // 接收到的请求的transport，仅呼入请求
+    var server_transaction = request.server_transaction;  // 请求相关的事务，仅呼入请求
 });
 
-session.terminate();
+// 终止会话
+var currentSession = session.terminate({
+    status_code: 202,
+    reason_phrase: "断网了",
+    extraHeaders: "",
+    body: "断网了"  // 设置body必须设置extraHeaders
+});
+
+session.bye({
+    status_code: 300,
+    reason_phrase: "",
+    extraHeaders: ['X-Foo: foo', 'X-Bar: bar'],
+    body: ""
+});
+
+// 保持
+session.hold({
+    extraHeaders: ['X-Foo: foo', 'X-Bar: bar'],
+    anonymous: false,
+    rel100: SIP.C.supported.UNSUPPORTED,
+    inviteWithoutSdp: true,
+    sessionDescriptionHandlerOptions: {}
+
+}, function () {
+    return new Promise();
+});
+
+// 取消保持
+session.unhold({
+    extraHeaders: ['X-Foo: foo', 'X-Bar: bar'],
+    anonymous: false,
+    rel100: SIP.C.supported.UNSUPPORTED,
+    inviteWithoutSdp: true,
+    sessionDescriptionHandlerOptions: {}
+}, function () {
+    return new Promise();
+});
+
+// 重拨
+session.reinvite({
+    extraHeaders: ['X-Foo: foo', 'X-Bar: bar'],
+    anonymous: false,
+    rel100: SIP.C.supported.UNSUPPORTED,
+    inviteWithoutSdp: true,
+    sessionDescriptionHandlerOptions: {}
+});
+/**
+ * 收到重拨时触发
+ **/
+session.on('reinvite', function (session) {
+    // session 接收呼叫的session
+});
+
+/**
+ * 转接
+ * @return 当前会话session
+ **/
+session.refer(session, {
+    activeAfterTransfer: false,  // 转接后是否不挂机
+    extraHeaders: ['X-Foo: foo', 'X-Bar: bar'],
+    receiveResponse: function () {
+    }
+
+});
+/**
+ * 转接发送或接收时触发
+ * @context SIP.ReferClientContext / SIP.ReferServerContext
+ **/
+session.on('referRequested', function (context) {
+    // 外呼转接
+    if(context instanceof SIP.ReferClientContext) {
+        // Set up event listeners
+        context.on();
+        return;
+    }
+    // 呼入转接
+    if(context instanceof SIP.ReferServerContext) {
+        // Set up event listeners
+        context.on();
+        context.accept();
+        return;
+    }
+});
+
+session.on('progress', function (response) {
+});
+/**
+ * 会话被替换时触发
+ **/
+session.on('replaced', function (newSession) {
+    // newSession 替换当前session的会话
+});
+
