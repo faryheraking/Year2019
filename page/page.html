@@ -7,24 +7,20 @@
 <body>
 <div class="data">
     <!-- 分页结构 -->
-    <div id="my-page">
-        <div class="page-r">
-            <ul id="page_ul" class="page-ul"></ul>
-        </div>
-        <div class="page-l" id="page_l">
-            <p>总共 <span id="total_count"></span> 条，<span id="total-pages"></span> 页，当前第 <span id="current-page">1</span> 页</p>
-        </div>
-    </div>
+
 </div>
 <script src="page.js"></script>
 <script>
     (function () {
         //查询列表数据
         var isload = false;
-        var pageIng = new Paging(null, function (pageIndex, pageSize) {
-            pageIng.initPage(200, pageSize, pageIndex);
-        });
-        pageIng.initPage(200, 20, 1);
+        var pageIng = new Pagination({
+                container: document.getElementsByClassName("data").item(0)
+            },
+            function (pageIndex, pageSize) {
+                pageIng.pageCreate(200, pageSize, pageIndex);
+            });
+        pageIng.pageCreate(200, 20, 1);
     })();
 </script>
 </body>

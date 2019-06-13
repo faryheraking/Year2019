@@ -1,5 +1,16 @@
-function Paging(paramsObj, callback) {
+function Pagination(paramsObj, callback) {
     var that = this;
+    this.container = paramsObj.container;
+    this.mainHtml = '<div id="my-page">\
+                        <div class="page-r"><ul id="page_ul" class="page-ul"></ul></div>\
+                        <div class="page-l" id="page_l">\
+                            <p>总共 <span id="total_count">0</span> 条，<span id="total-pages"></span> 页，当前第 <span id="current-page">1</span> 页</p>\
+                        </div>\
+                    </div>';
+    if (this.container) {
+        this.container.innerHTML = this.mainHtml;
+    }
+
     this.pageSize = paramsObj.pageSize || 10;    //每页条数（不设置时，默认为10
     this.pageIndex = paramsObj.pageIndex || 1;    //当前页码
     this.totalCount = paramsObj.totalCount || 0;   //总记录数
@@ -17,11 +28,12 @@ function Paging(paramsObj, callback) {
 
 
     function applyStyle() {
-        var pageStyle = "#my-page {font-size: 14px;background-color: transparent;width: 100%;height: 50px;line-height: 50px;display: block;}" +
-            "#my-page .page-l {float: right;}" +
+        var pageStyle = "#my-page p{margin: 0;padding: 0;}" +
+            "#my-page {font-size: 14px;background-color: transparent;width: 100%;line-height: 30px;display: block;}" +
+            "#my-page .page-l {float: right;height:30px;}" +
             "#my-page .page-l select {width: 60px;height: 30px;}" +
             "#my-page .page-l .page-size-box {display: inline-block;margin-left: 20px;}" +
-            "#my-page .page-r {float: right;padding-top: 10px;}" +
+            "#my-page .page-r {float: right;height: 30px;margin-left: 20px;}" +
             "#my-page .page-r ul {float: left;list-style: none;margin: 0;height: 30px;box-sizing: border-box;padding: 0;}" +
             "#my-page .page-r ul li {float: left;list-style: none;height: 100%;line-height: 30px;border: 1px solid #ccc;border-right: 0 none;box-sizing: border-box;}" +
             "#my-page .page-r ul li a:hover {background-color: #f5f2f2;}" +
@@ -56,7 +68,7 @@ function Paging(paramsObj, callback) {
     }
 
     // 生成分页DOM结构
-    this.initPage = function (totalCount, totalPage, pageIndex) {
+    this.pageCreate = function (totalCount, totalPage, pageIndex) {
         this.totalCount = totalCount;
         this.totalPage = totalPage;
         this.pageIndex = pageIndex;
@@ -69,14 +81,11 @@ function Paging(paramsObj, callback) {
         var count = degeCount;
         var countNext = 0;
         var countPrev = 0;
+        //前后都需要省略号按钮
         if (pageIndex - degeCount >= degeCount - 1 && totalPage - pageIndex >= degeCount + 1) {
-            //前后都需要省略号按钮
             console.log("前后都需要省略号按钮");
-            headHtml = '<li><a id="first_page" href="javascript:;">' + this.firstPage + '</a></li>' +
-                '<li><a id="prev_page" href="javascript:;">' + this.prevPage + '</a></li>';
-
-            endHtml = '<li><a id="next_page" href="javascript:;">' + this.nextPage + '</a></li>' +
-                '<li><a id="last_page" href="javascript:;">' + this.lastPage + '</a></li>';
+            headHtml = '<li><a id="first_page" href="javascript:;">' + this.firstPage + '</a></li><li><a id="prev_page" href="javascript:;">' + this.prevPage + '</a></li>';
+            endHtml = '<li><a id="next_page" href="javascript:;">' + this.nextPage + '</a></li><li><a id="last_page" href="javascript:;">' + this.lastPage + '</a></li>';
 
             count = degeCount;  //前后各自需要显示的页码个数
             for (var i = 0; i < count; i++) {
@@ -85,21 +94,17 @@ function Paging(paramsObj, callback) {
                 }
                 tmpHtmlNext += '<li><a href="javascript:;" class="page-number">' + ((pageIndex - 0) + i + 1) + '</a></li>';
             }
-            pageHtml = headHtml + this.ellipsisBtn + tmpHtmlPrev +
-                '<li><a href="javascript:;" class="active">' + pageIndex + '</a></li>' +
-                tmpHtmlNext + this.ellipsisBtn + endHtml;
-        } else if (pageIndex - degeCount >= degeCount - 1 && totalPage - pageIndex < degeCount + 1) {
-            //前面需要省略号按钮，后面不需要
+            pageHtml = headHtml + this.ellipsisBtn + tmpHtmlPrev + '<li><a href="javascript:;" class="active">' + pageIndex + '</a></li>' + tmpHtmlNext + this.ellipsisBtn + endHtml;
+        }
+        //前面需要省略号按钮，后面不需要
+        else if (pageIndex - degeCount >= degeCount - 1 && totalPage - pageIndex < degeCount + 1) {
             console.log("前面需要省略号按钮，后面不需要");
-            headHtml = '<li><a id="first_page" href="javascript:;">' + this.firstPage + '</a></li>' +
-                '<li><a id="prev_page" href="javascript:;">' + this.prevPage + '</a></li>';
+            headHtml = '<li><a id="first_page" href="javascript:;">' + this.firstPage + '</a></li><li><a id="prev_page" href="javascript:;">' + this.prevPage + '</a></li>';
 
             if (pageIndex === totalPage) { //如果当前页就是最后一页
-                endHtml = '<li><span id="next_page" href="javascript:;">' + this.nextPage + '</span></li>' +
-                    '<li><span id="last_page" href="javascript:;">' + this.lastPage + '</span></li>';
+                endHtml = '<li><span id="next_page" href="javascript:;">' + this.nextPage + '</span></li><li><span id="last_page" href="javascript:;">' + this.lastPage + '</span></li>';
             } else {  //当前页不是最后一页
-                endHtml = '<li><a id="next_page" href="javascript:;">' + this.nextPage + '</a></li>' +
-                    '<li><a id="last_page" href="javascript:;">' + this.lastPage + '</a></li>';
+                endHtml = '<li><a id="next_page" href="javascript:;">' + this.nextPage + '</a></li><li><a id="last_page" href="javascript:;">' + this.lastPage + '</a></li>';
             }
 
             count = degeCount;  //前需要显示的页码个数
@@ -112,25 +117,17 @@ function Paging(paramsObj, callback) {
             for (var k = 0; k < countNext; k++) {
                 tmpHtmlNext += '<li><a href="javascript:;" class="page-number">' + ((pageIndex - 0) + k + 1) + '</a></li>';
             }
-            pageHtml = headHtml +
-                this.ellipsisBtn +
-                tmpHtmlPrev +
-                '<li><a href="javascript:;" class="active">' + pageIndex + '</a></li>' +
-                tmpHtmlNext +
-                endHtml;
-        } else if (pageIndex - degeCount < degeCount - 1 && totalPage - pageIndex >= degeCount + 1) {
-            //前面不需要，后面需要省略号按钮
+            pageHtml = headHtml + this.ellipsisBtn + tmpHtmlPrev + '<li><a href="javascript:;" class="active">' + pageIndex + '</a></li>' + tmpHtmlNext + endHtml;
+        }
+        //前面不需要，后面需要省略号按钮
+        else if (pageIndex - degeCount < degeCount - 1 && totalPage - pageIndex >= degeCount + 1) {
             console.log("前面不需要，后面需要省略号按钮");
             if (pageIndex === 1) { //如果当前页就是第一页
-                headHtml = '<li><span id="first_page" href="javascript:;">' + this.firstPage + '</span></li>' +
-                    '<li><span id="prev_page" href="javascript:;">' + this.prevPage + '</span></li>';
+                headHtml = '<li><span id="first_page" href="javascript:;">' + this.firstPage + '</span></li><li><span id="prev_page" href="javascript:;">' + this.prevPage + '</span></li>';
             } else {  //当前页不是第一页
-                headHtml = '<li><a id="first_page" href="javascript:;">' + this.firstPage + '</a></li>' +
-                    '<li><a id="prev_page" href="javascript:;">' + this.prevPage + '</a></li>';
+                headHtml = '<li><a id="first_page" href="javascript:;">' + this.firstPage + '</a></li><li><a id="prev_page" href="javascript:;">' + this.prevPage + '</a></li>';
             }
-
-            endHtml = '<li><a id="next_page" href="javascript:;">' + this.nextPage + '</a></li>' +
-                '<li><a id="last_page" href="javascript:;">' + this.lastPage + '</a></li>';
+            endHtml = '<li><a id="next_page" href="javascript:;">' + this.nextPage + '</a></li><li><a id="last_page" href="javascript:;">' + this.lastPage + '</a></li>';
 
             countPrev = pageIndex - 1;  //前需要显示的页码个数
             count = degeCount;  //后需要显示的页码个数
@@ -142,36 +139,24 @@ function Paging(paramsObj, callback) {
             for (var n = 0; n < count; n++) {
                 tmpHtmlNext += '<li><a href="javascript:;" class="page-number">' + ((pageIndex - 0) + n + 1) + '</a></li>';
             }
-            pageHtml = headHtml +
-                tmpHtmlPrev +
-                '<li><a href="javascript:;" class="active">' + pageIndex + '</a></li>' +
-                tmpHtmlNext +
-                this.ellipsisBtn +
-                endHtml;
-        } else if (pageIndex - degeCount < degeCount - 1 && totalPage - pageIndex < degeCount + 1) {
+            pageHtml = headHtml + tmpHtmlPrev + '<li><a href="javascript:;" class="active">' + pageIndex + '</a></li>' + tmpHtmlNext + this.ellipsisBtn + endHtml;
+        }
+        //前后都不需要省略号按钮
+        else if (pageIndex - degeCount < degeCount - 1 && totalPage - pageIndex < degeCount + 1) {
             console.log("前后都不需要省略号按钮");
-            //前后都不需要省略号按钮
-            headHtml = '<li><a id="first_page" href="javascript:;">' + this.firstPage + '</a></li>' +
-                '<li><a id="prev_page" href="javascript:;">' + this.prevPage + '</a></li>';
-            endHtml = '<li><a id="next_page" href="javascript:;">' + this.nextPage + '</a></li>' +
-                '<li><a id="last_page" href="javascript:;">' + this.lastPage + '</a></li>';
+            headHtml = '<li><a id="first_page" href="javascript:;">' + this.firstPage + '</a></li><li><a id="prev_page" href="javascript:;">' + this.prevPage + '</a></li>';
+            endHtml = '<li><a id="next_page" href="javascript:;">' + this.nextPage + '</a></li><li><a id="last_page" href="javascript:;">' + this.lastPage + '</a></li>';
 
             if (totalPage === 1) { //如果总页数就为1
-                headHtml = '<li><span id="first_page" href="javascript:;">' + this.firstPage + '</span></li>' +
-                    '<li><span id="prev_page" href="javascript:;">' + this.prevPage + '</span></li>';
-                endHtml = '<li><span id="next_page" href="javascript:;">' + this.nextPage + '</span></li>' +
-                    '<li><span id="last_page" href="javascript:;">' + this.lastPage + '</span></li>';
+                headHtml = '<li><span id="first_page" href="javascript:;">' + this.firstPage + '</span></li><li><span id="prev_page" href="javascript:;">' + this.prevPage + '</span></li>';
+                endHtml = '<li><span id="next_page" href="javascript:;">' + this.nextPage + '</span></li><li><span id="last_page" href="javascript:;">' + this.lastPage + '</span></li>';
             } else {
                 if (pageIndex === 1) { //如果当前页就是第一页
-                    headHtml = '<li><span id="first_page" href="javascript:;">' + this.firstPage + '</span></li>' +
-                        '<li><span id="prev_page" href="javascript:;">' + this.prevPage + '</span></li>';
-                    endHtml = '<li><a id="next_page" href="javascript:;">' + this.nextPage + '</a></li>' +
-                        '<li><a id="last_page" href="javascript:;">' + this.lastPage + '</a></li>';
+                    headHtml = '<li><span id="first_page" href="javascript:;">' + this.firstPage + '</span></li><li><span id="prev_page" href="javascript:;">' + this.prevPage + '</span></li>';
+                    endHtml = '<li><a id="next_page" href="javascript:;">' + this.nextPage + '</a></li><li><a id="last_page" href="javascript:;">' + this.lastPage + '</a></li>';
                 } else if (pageIndex === totalPage) {  //如果当前页是最后一页
-                    headHtml = '<li><a id="first_page" href="javascript:;">' + this.firstPage + '</a></li>' +
-                        '<li><a id="prev_page" href="javascript:;">' + this.prevPage + '</a></li>';
-                    endHtml = '<li><span id="next_page" href="javascript:;">' + this.nextPage + '</span></li>' +
-                        '<li><span id="last_page" href="javascript:;">' + this.lastPage + '</span></li>';
+                    headHtml = '<li><a id="first_page" href="javascript:;">' + this.firstPage + '</a></li><li><a id="prev_page" href="javascript:;">' + this.prevPage + '</a></li>';
+                    endHtml = '<li><span id="next_page" href="javascript:;">' + this.nextPage + '</span></li><li><span id="last_page" href="javascript:;">' + this.lastPage + '</span></li>';
                 }
             }
 
@@ -191,8 +176,11 @@ function Paging(paramsObj, callback) {
                 tmpHtmlNext +
                 endHtml;
         }
+
         document.getElementById("page_ul").innerHTML = pageHtml;
         document.getElementById("total_count").innerHTML = totalCount;
+        document.getElementById("total-pages").innerHTML = totalPage;
+        document.getElementById("current-page").innerHTML = pageIndex;
 
         // 点击页码（首页、上一页、下一页、末页、数字页）
         document.getElementById("page_ul").onclick = function (e) {
@@ -210,7 +198,6 @@ function Paging(paramsObj, callback) {
                 } else if (className === 'page-number') {   //如果点击的是数字页码
                     that.pageIndex = Number(el.innerHTML);
                 }
-                console.log(that.pageIndex,"---------",typeof that.pageIndex);
                 callback && callback(that.pageIndex, that.pageSize);
             }
         };
