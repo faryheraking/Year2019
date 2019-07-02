@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="./js/sha3.js"></script>
+    <!--<script src="script/core.js"></script>
+    <script src="script/lib-typedarrays.js"></script>
+    <script src="script/x64-core.js"></script>
+    <script src="script/sha3.js"></script>-->
+</head>
+<body>
+<script>
+    let sha = CryptoJS.SHA3("中国人", {outputLength: 64}).toString();
+    console.log(sha);
+</script>
+</body>
+</html>

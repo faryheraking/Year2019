@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="public.js"></script>
+</head>
+<body>
+<div id="app">
+    <el-table :data="tableData" style="width: 100%">
+        <template v-for="item in fields">
+            <el-table-column :label="item.name" width="180" v-if="item.name==='公司名称'" :key="item.id">
+                <template slot-scope="scope">
+                    {{scope.row[item.prop]}}
+                </template>
+            </el-table-column>
+            <el-table-column :label="item.name" :prop="item.prop" v-else :key="item.id"></el-table-column>
+        </template>
+    </el-table>
+</div>
+<script>
+    new Vue({
+        el: "#app",
+        data: {
+            fields: [
+                {id: "x", name: "公司名称", prop: "date"},
+                {id: "y", name: "姓名", prop: "name"}
+            ],
+            tableData: [{
+                date: '2016-05-02',
+                name: '王小虎1'
+            }, {
+                date: '2016-05-04',
+                name: '王小虎2'
+            }, {
+                date: '2016-05-01',
+                name: '王小虎3'
+            }, {
+                date: '2016-05-03',
+                name: '王小虎4'
+            }]
+        },
+        methods: {}
+    });
+</script>
+</body>
+</html>

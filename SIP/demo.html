@@ -5,9 +5,11 @@
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
-    <script src="sip-0.11.6.js"></script>
+    <!--<script src="sip-0.11.6.js"></script>-->
 </head>
 <body>
+<script src="./dist/main.js"></script>
+<!--
 <video id="remoteVideo"></video>
 <audio id="remoteAudio"></audio>
 <video id="localVideo" muted="muted"></video>
@@ -21,12 +23,39 @@
 <button id="8">8</button>
 <button id="9">9</button>
 <button id="0">0</button>
+-->
 
-<!--<script src="common.js"></script>-->
-<script src="simple.js"></script>
+<!--<script>
+    var config = {
+        // Replace this IP address with your FreeSWITCH IP address
+        uri: '1001@192.168.183.56',
 
+        // Replace this IP address with your FreeSWITCH IP address
+        // and replace the port with your FreeSWITCH ws port
+        //wsServers: 'ws://192.168.183.56:5066',
+        transportOptions: {
+            wsServers: ['ws://192.168.183.56:5066']
+        },
 
+        // FreeSWITCH Default Username
+        authorizationUser: '1001',
 
+        // FreeSWITCH Default Password
+        password: '1234'
+    };
+
+    var ua = new SIP.UA(config);
+    ua.on("registered", function () {
+        ua.message("1001@192.168.183.56", "hello");
+
+        ua.on("message", function (e) {
+            console.log(e.body);
+            var session = ua.invite('1006@192.168.183.56');
+            session.bye();
+        });
+    });
+
+</script>-->
 
 
 </body>
